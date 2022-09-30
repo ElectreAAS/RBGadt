@@ -1,2 +1,4 @@
-(library
- (name rbgadt))
+(executable
+ (name rbgadt)
+ (flags
+  (-w -37)))
