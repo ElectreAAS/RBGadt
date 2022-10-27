@@ -96,26 +96,25 @@ let rec add : type b n. 'a -> ('a, b, n) node -> ('a, b, n) result =
 
 let save_to_dot string_of_elem t filename =
   let oc = open_out filename in
+  let i = ref 0 in
   let rec pr_node : type b n. ('a, b, n) node -> unit = function
     | Empty -> ()
     | Node (color, l, x, r) -> (
-        let string_of_color =
-          match color with Black -> "black" | Red -> "red"
-        in
+        let node_color = match color with Black -> "black" | Red -> "red" in
+        let self = !i in
+        incr i;
         Printf.fprintf oc
-          "\t%s [style=filled shape=circle color=%s fontcolor=white];\n"
-          (string_of_elem x) string_of_color;
+          "\t%d [style=filled shape=circle color=%s fontcolor=white label=%S];\n"
+          self node_color (string_of_elem x);
         (match l with
         | Empty -> ()
         | Node (Black, _, lx, _) | Node (Red, _, lx, _) ->
-            Printf.fprintf oc "\t%s -> %s\n" (string_of_elem x)
-              (string_of_elem lx);
+            Printf.fprintf oc "\t%d -> %d\n" self !i;
             pr_node l);
         match r with
         | Empty -> ()
         | Node (Black, _, rx, _) | Node (Red, _, rx, _) ->
-            Printf.fprintf oc "\t%s -> %s\n" (string_of_elem x)
-              (string_of_elem rx);
+            Printf.fprintf oc "\t%d -> %d\n" self !i;
             pr_node r)
   in
   Printf.fprintf oc "digraph {\n";
@@ -133,12 +132,13 @@ let destruct : type b. ('a, black, b) result -> 'a t = function
 
 let add e (T t) = destruct @@ add e t
 let cons e (T t) = destruct @@ cons e t
+let snoc e (T t) = destruct @@ snoc e t
 
 let save_to_dot string_of_elem (T t) filename =
   save_to_dot string_of_elem t filename
 
 let () =
   let t = ref (T Empty) in
-  let l = [ 15; 13; 11; 9; 7; 5; 3; 1; 14; 10; 6; 2; 12; 4; 8 ] in
-  List.iter (fun i -> t := add i !t) l;
-  save_to_dot string_of_int !t "output.dot"
+  let str = "Children of the stars, unite!" in
+  String.iter (fun i -> t := snoc i !t) str;
+  save_to_dot (String.make 1) !t "output.dot"
